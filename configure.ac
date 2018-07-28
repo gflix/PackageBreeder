@@ -11,6 +11,7 @@ AC_DEFINE_DIR([PYTHONDIR], [pythondir], [Path at which python files are placed t
 AC_CONFIG_FILES([
     Makefile
     contrib/Makefile
+    contrib/genomes/Makefile
     src/Makefile
     src/package-breeder:src/package-breeder.py
     src/package_breeder/Makefile

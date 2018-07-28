@@ -1,3 +1,6 @@
+SUBDIRS = \
+    genomes
+
 package_breederdir = $(datadir)/package-breeder/example
 package_breeder_DATA = \
     species.yaml
