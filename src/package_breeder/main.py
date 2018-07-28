@@ -1,3 +1,4 @@
+import logging
 import os
 import yaml
 
@@ -30,12 +31,13 @@ class Main(object):
         print('USAGE: %s BASEDIR COMMAND [ARGS]' % self.program_name)
         print('')
         print('Arguments:')
-        print('  BASEDIR  Base directory to work on')
-        print('  COMMAND  Execute the given command (see below)')
-        print('  [ARGS]   Optional and mandatory arguments to the chosen command')
+        print('  BASEDIR     Base directory to work on')
+        print('  COMMAND     Execute the given command (see below)')
+        print('  [ARGS]      Optional and mandatory arguments to the chosen command')
         print('')
         print('Commands:')
-        print('  species  List the available species (distributions and their architecture)')
+        print('  build-nest  Build a nest for a given specie (chroot environment)')
+        print('  species     List the available species (distributions and their architecture)')
         print('')
         print('Version information:')
         print('  %s' % self.version_information)
@@ -53,6 +55,8 @@ class Main(object):
 
         if command == 'species':
             self.run_command_species()
+        elif command == 'build-nest':
+            self.run_command_build_nest(arguments)
         else:
             self.print_usage()
             raise ValueError('unknown command "%s"' % command)
@@ -95,3 +99,16 @@ class Main(object):
             print('specie: %s' % key)
             print(str(specie))
             print()
+
+    def run_command_build_nest(self, arguments):
+        if (len(arguments) < 1):
+            raise IndexError('missing specie')
+
+        specie_name = arguments[0]
+        if not specie_name in self.species:
+            raise KeyError('unknown specie "%s"' % specie_name)
+
+        nest_dir = os.path.join(self.nests_dir, specie_name)
+        nest_image = os.path.join(self.nests_dir, specie_name + '.cpio.gz')
+        logging.info('Building the nest for the specie "%s" at "%s"' % (specie_name, nest_dir))
+        logging.info('Nest will be stored to "%s"' % (nest_image))

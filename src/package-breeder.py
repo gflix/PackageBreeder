@@ -3,6 +3,8 @@
 import sys
 sys.path.append('@PYTHONDIR@')
 
+import logging
+
 from package_breeder import main
 
 if __name__ == '__main__':
@@ -18,8 +20,9 @@ if __name__ == '__main__':
     arguments = sys.argv[3:]
 
     try:
+        logging.basicConfig(level=logging.DEBUG)
         package_breeder_main.run(base_dir, command, arguments)
-    except (OSError, ValueError) as e:
+    except (OSError, ValueError, IndexError, KeyError) as e:
         print('ERROR: Interrupted while hatching (%s)! Aborting.' % str(e))
         sys.exit(-1)
 
