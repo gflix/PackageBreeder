@@ -1,8 +1,11 @@
+import datetime
 import logging
 import os
+import shutil
+import subprocess
 import yaml
 
-from package_breeder import specie
+from package_breeder import specie, tags
 
 DIRECTORY_NESTS = 'nests'
 SPECIES_FILE = 'species.yaml'
@@ -90,13 +93,13 @@ class Main(object):
             del species_input[COMMON_SPECIE]
 
         for key in species_input:
-            self.species[key] = specie.Specie(common_input, species_input[key])
+            self.species[key] = specie.Specie(key, common_input, species_input[key])
 
     def run_command_species(self):
         for key in self.species:
             specie = self.species[key]
 
-            print('specie: %s' % key)
+            print('specie:')
             print(str(specie))
             print()
 
@@ -108,7 +111,42 @@ class Main(object):
         if not specie_name in self.species:
             raise KeyError('unknown specie "%s"' % specie_name)
 
+        chosen_specie = self.species[specie_name]
         nest_dir = os.path.join(self.nests_dir, specie_name)
         nest_image = os.path.join(self.nests_dir, specie_name + '.cpio.gz')
-        logging.info('Building the nest for the specie "%s" at "%s"' % (specie_name, nest_dir))
+        nest_information = os.path.join(self.nests_dir, specie_name + '.yaml')
+        self.build_nest(chosen_specie, nest_dir, nest_image, nest_information)
+
+    def build_nest(self, chosen_specie, nest_dir, nest_image, nest_information):
+        if not isinstance(chosen_specie, specie.Specie):
+            raise TypeError('wrong arguments')
+
+        logging.info('Building the nest for the specie "%s" at "%s"' % (chosen_specie.name, nest_dir))
         logging.info('Nest will be stored to "%s"' % (nest_image))
+
+        if os.path.isdir(nest_dir):
+            logging.info('Removing the old nest first...')
+            shutil.rmtree(nest_dir)
+
+        arguments = ['qemu-debootstrap']
+        arguments += chosen_specie.get_debootstrap_arguments()
+        arguments += [nest_dir]
+        logging.debug('arguments=%s', arguments)
+
+        subprocess.check_call(arguments)
+
+        arguments = ['sh', '-c', 'cd "%s" && ( find . | sort | cpio -o | gzip > %s )' % (nest_dir, nest_image)]
+        logging.debug('arguments=%s', arguments)
+
+        subprocess.check_call(arguments)
+
+        build_information = {
+            tags.TAG_SPECIE: chosen_specie.serialize(),
+            tags.TAG_BUILT: datetime.datetime.now().isoformat(timespec='seconds')
+        }
+
+        open(nest_information, 'w').write(yaml.dump(build_information, default_flow_style=False))
+
+        if os.path.isdir(nest_dir):
+            logging.info('Temporary files...')
+            shutil.rmtree(nest_dir)

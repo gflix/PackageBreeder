@@ -32,6 +32,18 @@ class SpeciePackages(object):
         self.included = sorted(list(set(common_included + specie_included)))
         self.excluded = sorted(list(set(common_excluded + specie_excluded)))
 
+    def get_debootstrap_arguments(self):
+        return [
+            '--include=%s' % (','.join(self.included)),
+            '--exclude=%s' % (','.join(self.excluded))
+        ]
+
+    def serialize(self):
+        return {
+            tags.TAG_INCLUDED: self.included,
+            tags.TAG_EXCLUDED: self.excluded
+        }
+
     def __repr__(self):
         return 'SpeciePackages(included=%s, excluded=%s)' % (str(self.included), str(self.excluded))
 

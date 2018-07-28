@@ -1,5 +1,7 @@
 TAG_ARCHITECTURE = 'architecture'
+TAG_BUILT = 'built'
 TAG_DISTRIBUTION = 'distribution'
 TAG_EXCLUDED = 'excluded'
 TAG_INCLUDED = 'included'
 TAG_PACKAGES = 'packages'
+TAG_SPECIE = 'specie'
