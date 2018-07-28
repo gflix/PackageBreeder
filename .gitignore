@@ -1,0 +1,11 @@
+/aclocal.m4
+/autom4te.cache/
+/config.log
+/config.status
+/configure
+/install-sh
+/missing
+/py-compile
+/src/package-breeder
+Makefile.in
+Makefile
