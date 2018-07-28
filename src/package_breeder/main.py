@@ -34,13 +34,14 @@ class Main(object):
         print('USAGE: %s BASEDIR COMMAND [ARGS]' % self.program_name)
         print('')
         print('Arguments:')
-        print('  BASEDIR     Base directory to work on')
-        print('  COMMAND     Execute the given command (see below)')
-        print('  [ARGS]      Optional and mandatory arguments to the chosen command')
+        print('  BASEDIR      Base directory to work on')
+        print('  COMMAND      Execute the given command (see below)')
+        print('  [ARGS]       Optional and mandatory arguments to the chosen command')
         print('')
         print('Commands:')
-        print('  build-nest  Build a nest for a given specie (chroot environment)')
-        print('  species     List the available species (distributions and their architecture)')
+        print('  build-nest   Build a nest for a given specie (chroot environment)')
+        print('  build-nests  Build nests for all species which do not have one already (chroot environments)')
+        print('  species      List the available species (distributions and their architecture)')
         print('')
         print('Version information:')
         print('  %s' % self.version_information)
@@ -60,6 +61,8 @@ class Main(object):
             self.run_command_species()
         elif command == 'build-nest':
             self.run_command_build_nest(arguments)
+        elif command == 'build-nests':
+            self.run_command_build_nests()
         else:
             self.print_usage()
             raise ValueError('unknown command "%s"' % command)
@@ -156,3 +159,19 @@ class Main(object):
         if os.path.isdir(nest_dir):
             logging.info('Temporary files...')
             shutil.rmtree(nest_dir)
+
+        logging.info('Finished building the nest for the specie "%s"' % chosen_specie.name)
+
+    def run_command_build_nests(self):
+        for specie_name in self.species:
+            nest_information = os.path.join(self.nests_dir, specie_name + '.yaml')
+            try:
+                built_nest = nest.Nest(yaml.load(open(nest_information)))
+                logging.info('Nest for the specie "%s" already exists and was built %s. Skipping.' %
+                    (specie_name, built_nest.built.isoformat(timespec='seconds')))
+            except OSError:
+                chosen_specie = self.species[specie_name]
+                nest_dir = os.path.join(self.nests_dir, specie_name)
+                nest_image = os.path.join(self.nests_dir, specie_name + '.cpio.gz')
+
+                self.build_nest(chosen_specie, nest_dir, nest_image, nest_information)
