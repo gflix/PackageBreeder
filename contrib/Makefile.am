@@ -1,4 +1,4 @@
-package_breederdir = $(sysconfdir)/package-breeder/example
+package_breederdir = $(datadir)/package-breeder/example
 package_breeder_DATA = \
     species.yaml
 
