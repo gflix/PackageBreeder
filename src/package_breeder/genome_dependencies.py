@@ -1,3 +1,5 @@
+import textwrap
+
 from package_breeder import tags
 
 class GenomeDependencies(object):
@@ -28,3 +30,9 @@ class GenomeDependencies(object):
 
     def __repr__(self):
         return 'GenomeDependencies(external=%s, internal=%s)' % (self.external, self.internal)
+
+    def __str__(self):
+        return textwrap.indent('''\
+external: %s
+internal: %s'''
+             % (', '.join(self.external), ', '.join(self.internal)), '  ')

@@ -51,4 +51,4 @@ class SpeciePackages(object):
         return textwrap.indent('''\
 included: %s
 excluded: %s'''
-             % (self.included, self.excluded), '  ')
+             % (', '.join(self.included), ', '.join(self.excluded)), '  ')

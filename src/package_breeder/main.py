@@ -5,8 +5,9 @@ import shutil
 import subprocess
 import yaml
 
-from package_breeder import nest, specie, tags
+from package_breeder import genome, nest, specie, tags
 
+DIRECTORY_GENOMES = 'genomes'
 DIRECTORY_NESTS = 'nests'
 SPECIES_FILE = 'species.yaml'
 COMMON_SPECIE = 'common'
@@ -34,14 +35,15 @@ class Main(object):
         print('USAGE: %s BASEDIR COMMAND [ARGS]' % self.program_name)
         print('')
         print('Arguments:')
-        print('  BASEDIR      Base directory to work on')
-        print('  COMMAND      Execute the given command (see below)')
-        print('  [ARGS]       Optional and mandatory arguments to the chosen command')
+        print('  BASEDIR       Base directory to work on')
+        print('  COMMAND       Execute the given command (see below)')
+        print('  [ARGS]        Optional and mandatory arguments to the chosen command')
         print('')
         print('Commands:')
-        print('  build-nest   Build a nest for a given specie (chroot environment)')
-        print('  build-nests  Build nests for all species which do not have one already (chroot environments)')
-        print('  species      List the available species (distributions and their architecture)')
+        print('  build-nest    Build a nest for a given specie (chroot environment)')
+        print('  build-nests   Build nests for all species which do not have one already (chroot environments)')
+        print('  hatch-an-egg  Hatch an egg for a given specie using a given genome (build a package)')
+        print('  species       List the available species (distributions and their architecture)')
         print('')
         print('Version information:')
         print('  %s' % self.version_information)
@@ -63,6 +65,8 @@ class Main(object):
             self.run_command_build_nest(arguments)
         elif command == 'build-nests':
             self.run_command_build_nests()
+        elif command == 'hatch-an-egg':
+            self.run_command_hatch_an_egg(arguments)
         else:
             self.print_usage()
             raise ValueError('unknown command "%s"' % command)
@@ -105,7 +109,7 @@ class Main(object):
             print('specie:')
             print(str(specie))
             try:
-                built_nest = nest.Nest(yaml.load(open(os.path.join(self.nests_dir, key + '.yaml'))))
+                built_nest = specie.get_nest(self.nests_dir)
                 print('  nest: built %s' % built_nest.built.isoformat(timespec='seconds'))
             except OSError as e:
                 print('  nest: not available (%s)' % str(e))
@@ -175,3 +179,40 @@ class Main(object):
                 nest_image = os.path.join(self.nests_dir, specie_name + '.cpio.gz')
 
                 self.build_nest(chosen_specie, nest_dir, nest_image, nest_information)
+
+    def run_command_hatch_an_egg(self, arguments):
+        if (len(arguments) < 2):
+            raise IndexError('give specie and genome')
+
+        specie_name = arguments[0]
+        genome_file = arguments[1]
+
+        if not specie_name in self.species:
+            raise KeyError('unknown specie "%s"' % specie_name)
+
+        if len(os.path.dirname(genome_file)) == 0:
+            genome_file = os.path.join(self.base_dir, DIRECTORY_GENOMES, genome_file)
+
+        if not os.path.isfile(genome_file):
+            raise OSError('genome file "%s" does not exists' % genome_file)
+
+        chosen_genome = genome.Genome(yaml.load(open(genome_file)))
+        chosen_specie = self.species[specie_name]
+
+        logging.info('Chosen genome:')
+        logging.info(str(chosen_genome))
+        logging.info('Chosen specie:')
+        logging.info(str(chosen_specie))
+
+        self.hatch_an_egg(chosen_genome, chosen_specie)
+
+    def hatch_an_egg(self, chosen_genome, chosen_specie):
+        if not isinstance(chosen_genome, genome.Genome) or \
+           not isinstance(chosen_specie, specie.Specie):
+            raise TypeError('wrong arguments')
+
+        built_nest = chosen_specie.get_nest(self.nests_dir)
+        logging.info('Using nest of specie "%s" built %s to hatch the egg for genome "%s-%s"' % \
+            (chosen_specie.name, built_nest.built.isoformat(timespec='seconds'), chosen_genome.name, chosen_genome.version))
+
+        nest_image = os.path.join(self.nests_dir, chosen_specie.name + '.cpio.gz')

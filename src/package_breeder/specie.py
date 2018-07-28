@@ -1,6 +1,8 @@
+import os
 import textwrap
+import yaml
 
-from package_breeder import specie_packages, tags
+from package_breeder import nest, specie_packages, tags
 
 class Specie(object):
 
@@ -40,6 +42,9 @@ class Specie(object):
         arguments += [self.distribution]
 
         return arguments
+
+    def get_nest(self, nests_dir):
+        return nest.Nest(yaml.load(open(os.path.join(nests_dir, self.name + '.yaml'))))
 
     def serialize(self):
         return {
