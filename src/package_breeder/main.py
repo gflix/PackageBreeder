@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import yaml
 
-from package_breeder import specie, tags
+from package_breeder import nest, specie, tags
 
 DIRECTORY_NESTS = 'nests'
 SPECIES_FILE = 'species.yaml'
@@ -93,7 +93,7 @@ class Main(object):
             del species_input[COMMON_SPECIE]
 
         for key in species_input:
-            self.species[key] = specie.Specie(key, common_input, species_input[key])
+            self.species[key] = specie.Specie(common_input, species_input[key], key)
 
     def run_command_species(self):
         for key in self.species:
@@ -101,6 +101,12 @@ class Main(object):
 
             print('specie:')
             print(str(specie))
+            try:
+                built_nest = nest.Nest(yaml.load(open(os.path.join(self.nests_dir, key + '.yaml'))))
+                print('  nest: built %s' % built_nest.built.isoformat(timespec='seconds'))
+            except OSError as e:
+                print('  nest: not available (%s)' % str(e))
+
             print()
 
     def run_command_build_nest(self, arguments):

@@ -9,9 +9,8 @@ class Specie(object):
     architecture = None
     packages = None
 
-    def __init__(self, name, common_input, specie_input):
-        if not isinstance(name, str) or \
-           not isinstance(common_input, dict) or \
+    def __init__(self, common_input, specie_input, name = None):
+        if not isinstance(common_input, dict) or \
            not isinstance(specie_input, dict):
             raise TypeError('wrong arguments')
 
@@ -19,6 +18,8 @@ class Specie(object):
         self.load(common_input, specie_input)
 
     def load(self, common_input, specie_input):
+        self.name = \
+            specie_input.get(tags.TAG_NAME, self.name)
         self.distribution = \
             specie_input.get(tags.TAG_DISTRIBUTION, common_input.get(tags.TAG_DISTRIBUTION))
         self.architecture = \
@@ -42,6 +43,7 @@ class Specie(object):
 
     def serialize(self):
         return {
+            tags.TAG_NAME: self.name,
             tags.TAG_ARCHITECTURE: self.architecture,
             tags.TAG_DISTRIBUTION: self.distribution,
             tags.TAG_PACKAGES: self.packages.serialize()
