@@ -1,0 +1,25 @@
+stretch-amd64:
+  distribution: stretch
+  architecture: amd64
+
+common:
+  packages:
+    included:
+    - locales
+    - python3
+    - build-essential
+    - automake
+    - autopoint
+    - dpkg-dev
+    - flex
+    - bison
+    - bc
+    - lzop
+    - xz-utils
+    - bzip2
+    - gawk
+    excluded:
+    - rsyslog
+    - tasksel
+    - tasksel-data
+    - ufw
